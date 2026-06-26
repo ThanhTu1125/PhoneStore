@@ -67,7 +67,6 @@ function detailStoryAction()
 	load_view('detail_story', $data);
 }
 
-// Hàm xử lý yêu cầu thanh toán và xác nhận đơn hàng
 function checkoutAction()
 {
 	// Kiểm tra xem người dùng đã nhấn nút "submit" hay chưa
@@ -79,7 +78,24 @@ function checkoutAction()
 			// Kiểm tra nếu phương thức thanh toán đã được chọn và giỏ hàng không trống
 			if (!empty($_POST['payment_method']) && !empty($_SESSION['cart']['buy'])) {
 
-				// Lấy thông tin đơn hàng từ session và form
+				// Lấy thông tin giỏ hàng từ session
+				foreach ($_SESSION['cart']['buy'] as $value) {
+					$id_product = $value['id'];    // ID sản phẩm
+					$qty = $value['qty'];         // Số lượng đặt mua
+
+					// Lấy thông tin sản phẩm từ cơ sở dữ liệu
+					$product_data = db_fetch_row("SELECT `quantity`, `name` FROM `tbl_product` WHERE `id` = '$id_product'");
+
+					// Kiểm tra số lượng tồn kho
+					if ($product_data['quantity'] < $qty) {
+						// Nếu không đủ số lượng, hiển thị thông báo và dừng xử lý
+						echo "<script>alert('Sản phẩm {$product_data['name']} không đủ số lượng trong kho! Vui lòng kiểm tra lại.');</script>";
+						echo "<script>window.location.href = '?modules=checkouts&controllers=index&action=index';</script>";
+						exit;
+					}
+				}
+
+				// Nếu đủ tồn kho, tiếp tục xử lý đơn hàng
 				$custom_id = $_SESSION['id_customer'];
 				$total_price = $_SESSION['cart']['info']['total'];
 				$total_num_product = $_SESSION['cart']['info']['num_oder'];
@@ -107,10 +123,10 @@ function checkoutAction()
 					inserOderDetail($id_order, $value['id'], $value['qty'], $value['sub_total']);
 				}
 
-				// Gọi hàm gửi mail cho khách hàng về đơn hàng
+				// Gửi email xác nhận đơn hàng
 				sendMail($id_order);
 
-				// Xóa giỏ hàng sau khi đơn hàng được xác nhận
+				// Xóa giỏ hàng sau khi hoàn tất đơn hàng
 				deletecart();
 
 				// Xóa dữ liệu giỏ hàng trong session

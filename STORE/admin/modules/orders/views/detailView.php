@@ -18,7 +18,6 @@
                         <table class="table list-table-wp">
                             <thead>
                                 <tr>
-                                    <td><input type="checkbox" name="checkAll" id="checkAll"></td>
                                     <td><span class="thead-text">STT</span></td>
                                     <td><span class="thead-text">Mã sản phẩm</span></td>
                                     <td><span class="thead-text">Hình ảnh</span></td>
@@ -32,7 +31,6 @@
                             <tbody>
                                 <?php if(!empty($data))  foreach ($data as $key => $value) { if($key < count($data) -2){?>
                                 <tr>
-                                    <td><input type="checkbox" name="checkItem" class="checkItem"></td>
                                     <td><span class="tbody-text"><?php echo ($key +1) ;?></h3></span>
                                     <td><span class="tbody-text"><?php echo $value['code']; ?></h3></span>
                                     <td>

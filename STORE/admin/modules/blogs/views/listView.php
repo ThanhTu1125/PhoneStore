@@ -17,7 +17,6 @@
                         <table class="table list-table-wp">
                             <thead>
                                 <tr>
-                                    <td><input type="checkbox" name="checkAll" id="checkAll"></td>
                                     <td><span class="thead-text">STT</span></td>
                                     <td ><span class="thead-text" >Tiêu đề</span></td>
                                     <td><span class="thead-text">Người viết</span></td>
@@ -28,7 +27,6 @@
                             <tbody>
                                 <?php $i=0;if(!empty($data['0'])) foreach ($data['0'] as  $value) { $i++;?>
                                 <tr>
-                                    <td><input type="checkbox" name="checkItem" class="checkItem"></td>
                                     <td><span class="tbody-text"><?php echo $i; ?></h3></span>
                                     <td ><span class="tbody-text"><?php echo $value['title']; ?></span> </td>
                                     <td><span class="tbody-text"><?php echo $value['user']; ?></span></td>

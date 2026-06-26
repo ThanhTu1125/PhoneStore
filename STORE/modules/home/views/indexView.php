@@ -55,7 +55,7 @@
             </div> -->
             <div class="section" id="feature-product-wp">
                 <div class="section-head">
-                    <h3 class="section-title">Sản phẩm nổi bật</h3>
+                    <h3 class="section-title">Sản phẩm mới nhất</h3>
                 </div>
                 <div class="section-detail">
                     <ul class="list-item">

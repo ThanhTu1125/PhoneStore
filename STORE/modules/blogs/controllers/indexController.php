@@ -24,7 +24,7 @@ function listAction(){
 	}
 	
 	$numBlog = count($data_tmp);
-	$blogOnPage = 5;
+	$blogOnPage = 10;
 	$num = ceil($numBlog/$blogOnPage);
 	if(!empty($_GET['page']) && $_GET['page']>$num){
 		$page =$num;

@@ -1,9 +1,3 @@
-<!--
-Author: W3layouts
-Author URL: http://w3layouts.com
-License: Creative Commons Attribution 3.0 Unported
-License URL: http://creativecommons.org/licenses/by/3.0/
--->
 <!DOCTYPE HTML>
 <html>
 
@@ -67,7 +61,7 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
 				<hr>
 				<div class="login-icons">
 					<ul>
-						<li><a href="https://www.facebook.com/anhtruongnd210198/" class="facebook"><i class="fa fa-facebook"></i></a></li>
+						<li><a href="#" class="facebook"><i class="fa fa-facebook"></i></a></li>
 						<li><a href="#" class="twitter"><i class="fa fa-twitter"></i></a></li>
 						<li><a href="#" class="google"><i class="fa fa-google-plus"></i></a></li>
 						<li><a href="#" class="dribbble"><i class="fa fa-dribbble"></i></a></li>

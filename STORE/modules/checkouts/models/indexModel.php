@@ -65,21 +65,32 @@ function deletecart()
 	// Xóa giỏ hàng khỏi session
 	unset($_SESSION['cart']);
 }
-
-// Hàm thêm chi tiết đơn hàng vào bảng `tbl_detail_order`
 function inserOderDetail($id_order, $id_product, $qty, $sub_total_price)
 {
-	// Mảng dữ liệu chứa thông tin chi tiết đơn hàng
+	// Lấy thông tin sản phẩm từ bảng `tbl_product`
+	$product_data = db_fetch_row("SELECT `quantity`, `name` FROM `tbl_product` WHERE `id` = '$id_product'");
+
+	// Kiểm tra số lượng tồn kho
+	if ($product_data['quantity'] < $qty) {
+		// Nếu không đủ số lượng, lưu thông báo lỗi vào session
+		$_SESSION['error'] = "Sản phẩm {$product_data['name']} không đủ số lượng trong kho!";
+		header('location: ?modules=checkouts&controllers=index&action=index');
+		exit;
+	}
+
+	// Nếu đủ số lượng, cập nhật số lượng sản phẩm trong kho
+	$new_quantity = $product_data['quantity'] - $qty;
+	db_query("UPDATE `tbl_product` SET `quantity` = '$new_quantity' WHERE `id` = '$id_product'");
+
+	// Chèn dữ liệu chi tiết đơn hàng vào bảng `tbl_detail_order`
 	$data = [
-		'id_order' => $id_order,  // ID đơn hàng
-		'id_product' => $id_product,  // ID sản phẩm
-		'qty' => $qty,  // Số lượng sản phẩm
-		'sub_total_price' => $sub_total_price  // Giá trị phụ của sản phẩm
+		'id_order' => $id_order,
+		'id_product' => $id_product,
+		'qty' => $qty,
+		'sub_total_price' => $sub_total_price
 	];
-	// Chèn dữ liệu vào bảng `tbl_detail_order`
 	db_insert("tbl_detail_order", $data);
 }
-
 // Hàm gửi email thông báo đơn hàng (chưa hoàn thiện)
 function sendMail($id_order)
 {

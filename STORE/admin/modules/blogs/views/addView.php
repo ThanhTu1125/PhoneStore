@@ -18,7 +18,7 @@
                         <label for="title">Tiêu đề</label>
                         <input type="text" name="title" id="title">
                         <label for="title">Người viết</label>
-                        <input type="text" name="user" id="title">
+                        <input type="text" name="user" id="price" style="display: block; width: 300px;" value="Admin">
                         <div id="uploadFile" style="width: 400px;">
                             <label>Hình ảnh</label>
                             <input type="file" name="image" id="upload-thumb">

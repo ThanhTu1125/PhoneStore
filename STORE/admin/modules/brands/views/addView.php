@@ -19,7 +19,7 @@
                                 <label for="title">Mã Code</label>
                                 <input type="text" name="code" id="title" style="display: block;width: 300px;">
                                 <label for="title">Người tạo</label>
-                                <input type="text" name="user" id="title" style="display: block;width: 300px;">
+                                <input type="text" name="user" id="price" style="display: block; width: 300px;" value="Admin">
                             </div>
                             <div id="uploadFile" style="width: 400px;">
                                 <label>Hình ảnh</label>

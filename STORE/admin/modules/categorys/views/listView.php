@@ -15,8 +15,7 @@
                         <table class="table list-table-wp">
                             <thead>
                                 <tr>
-                                    <td><input type="checkbox" name="checkAll" id="checkAll"></td>
-                                    <td><span class="thead-text">STT</span></td>
+                                        <td><span class="thead-text">STT</span></td>
                                     <td><span class="thead-text">Mã danh muc</span></td>
                                     <td><span class="thead-text">Hình ảnh</span></td>
                                     <td><span class="thead-text">Danh mục</span></td>
@@ -31,7 +30,6 @@
                                     $i++; ?>
 
                                     <tr>
-                                        <td><input type="checkbox" name="checkItem" class="checkItem"></td>
                                         <td><span class="tbody-text"><?php echo $i; ?></h3></span>
                                         <td><span class="tbody-text"><?php echo $value['code']; ?></h3></span>
                                         <td>
