@@ -1,25 +1,14 @@
 <?php
-
 /*
  * --------------------------------
- * CẤU HÌNH DATABASE
+ * CẤU HÌNH DATABASE (POSTGRESQL)
  * --------------------------------
- * Trong phần này chúng ta khai báo các thông số để cấu hình
- * Kết nối đến DB
- * --------------------------------
- * GIẢI THÍCH BIẾN
- * --------------------------------
- * hostname: Tên server
- * username: Tên đăng nhập kết nối nối
- * password: Mật khẩu kết nối
- * database: Tên database kết nối
  */
 
 $db = array(
     'hostname' => 'localhost',
-    'username' => 'root',
-    'password' => '',
-    'database' => 'store',
+    'port'     => '5432',         // Cổng mặc định của PostgreSQL
+    'username' => 'postgres',     // Thay bằng user Postgres của bro
+    'password' => 'thanhtu@HADES0125',       // Thay bằng mật khẩu Postgres của bro
+    'database' => 'phonee_store_db',
 );
-
-

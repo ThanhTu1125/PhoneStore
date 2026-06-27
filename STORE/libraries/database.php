@@ -1,138 +1,123 @@
 <?php
 
-// Hàm kết nối dữ liệu
-function db_connect()
-{
+// 1. Hàm kết nối dữ liệu bằng PDO
+function db_connect() {
     global $conn;
     $db = func_get_arg(0);
-    $conn = mysqli_connect($db['hostname'], $db['username'], $db['password'], $db['database']);
-    if (!$conn) {
-        db_sql_error('Connection Error');
+    
+    try {
+        // Chuỗi kết nối DSN cho PostgreSQL
+        $dsn = "pgsql:host={$db['hostname']};port={$db['port']};dbname={$db['database']}";
+        
+        $conn = new PDO($dsn, $db['username'], $db['password'], [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // Báo lỗi rõ ràng
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,       // Luôn trả về mảng kết hợp
+            PDO::ATTR_EMULATE_PREPARES   => false,                  // Bảo mật tốt hơn
+        ]);
+    } catch (PDOException $e) {
+        db_sql_error('Lỗi kết nối CSDL', '', $e->getMessage());
     }
-    mysqli_set_charset($conn, "utf8");
 }
 
-
-// Thực thi chuỗi truy vấn
-function db_query($query_string)
-{
+// 2. Thực thi chuỗi truy vấn (Dùng cho SELECT)
+function db_query($query_string) {
     global $conn;
-    $result = mysqli_query($conn, $query_string);
-    if (!$result) {
-        db_sql_error('Query Error', $query_string);
+    try {
+        $stmt = $conn->query($query_string);
+        return $stmt;
+    } catch (PDOException $e) {
+        db_sql_error('Lỗi câu lệnh SQL', $query_string, $e->getMessage());
     }
-    return $result;
 }
 
-// Lấy một dòng trong CSDL
-function db_fetch_row($query_string)
-{
-    global $conn;
-    $result = array();
-    $mysqli_result = db_query($query_string);
-    $result = mysqli_fetch_assoc($mysqli_result);
-    mysqli_free_result($mysqli_result);
-    return $result;
+// 3. Lấy một dòng trong CSDL (Dành cho chi tiết 1 sản phẩm, 1 user)
+function db_fetch_row($query_string) {
+    $stmt = db_query($query_string);
+    return $stmt ? $stmt->fetch() : [];
 }
 
-// Lấy một mảng trong CSDL
-function db_fetch_array($query_string)
-{
+// 4. Lấy nhiều dòng trong CSDL (Dành cho danh sách)
+function db_fetch_array($query_string) {
+    $stmt = db_query($query_string);
+    return $stmt ? $stmt->fetchAll() : [];
+}
+
+// 5. Lấy số lượng bản ghi
+function db_num_rows($query_string) {
+    $stmt = db_query($query_string);
+    return $stmt ? $stmt->rowCount() : 0;
+}
+
+// 6. Thêm dữ liệu (Đã tích hợp chống SQL Injection)
+function db_insert($table, $data) {
     global $conn;
-    $result = array();
-    $mysqli_result = db_query($query_string);
-    while ($row = mysqli_fetch_assoc($mysqli_result)) {
-        $result[] = $row;
+    $keys = array_keys($data);
+    $fields = implode(", ", $keys);
+    $placeholders = ":" . implode(", :", $keys);
+
+    $sql = "INSERT INTO $table ($fields) VALUES ($placeholders)";
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($data);
+        return $conn->lastInsertId(); 
+    } catch (PDOException $e) {
+        db_sql_error('Lỗi Insert', $sql, $e->getMessage());
     }
-    mysqli_free_result($mysqli_result);
-    return $result;
 }
 
-// Lấy số bản ghi trong kết quả truy vấn
-function db_num_rows($query_string)
-{
+// 7. Cập nhật dữ liệu (Đã tích hợp chống SQL Injection)
+function db_update($table, $data, $where) {
     global $conn;
-    $mysqli_result = db_query($query_string);
-    return mysqli_num_rows($mysqli_result);
-}
-
-// Thêm dữ liệu vào bảng
-function db_insert($table, $data)
-{
-    global $conn;
-    $fields = "(" . implode(", ", array_keys($data)) . ")";
-    $values = "";
-    foreach ($data as $field => $value) {
-        if ($value === NULL)
-            $values .= "NULL, ";
-        else
-            $values .= "'" . escape_string($value) . "', ";
+    $set_arr = [];
+    foreach ($data as $key => $value) {
+        $set_arr[] = "$key = :$key";
     }
-    $values = substr($values, 0, -2);
-    db_query("INSERT INTO $table $fields VALUES($values)");
-    return mysqli_insert_id($conn);
-}
+    $set_string = implode(", ", $set_arr);
 
-// Cập nhật dữ liệu trong bảng
-function db_update($table, $data, $where)
-{
-    global $conn;
-    $sql = "";
-    foreach ($data as $field => $value) {
-        if ($value === NULL)
-            $sql .= "$field=NULL, ";
-        else
-            $sql .= "$field='" . escape_string($value) . "', ";
+    $sql = "UPDATE $table SET $set_string WHERE $where";
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($data);
+        return $stmt->rowCount();
+    } catch (PDOException $e) {
+        db_sql_error('Lỗi Update', $sql, $e->getMessage());
     }
-    $sql = substr($sql, 0, -2);
-    db_query("UPDATE $table SET $sql WHERE $where");
-    return mysqli_affected_rows($conn);
 }
 
-// Xóa một dòng trong bảng
-function db_delete($table, $where)
-{
+// 8. Xóa một dòng trong bảng
+function db_delete($table, $where) {
     global $conn;
-    $query_string = "DELETE FROM $table WHERE $where";
-    db_query($query_string);
-    return mysqli_affected_rows($conn);
+    $sql = "DELETE FROM $table WHERE $where";
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->rowCount();
+    } catch (PDOException $e) {
+        db_sql_error('Lỗi Delete', $sql, $e->getMessage());
+    }
 }
 
-// Xóa toàn bộ bảng
-function db_delete_all($table)
-{
+// 9. Thoát chuỗi an toàn (Dự phòng cho code cũ)
+function escape_string($str) {
     global $conn;
-    $query_string = "DELETE FROM $table";
-    db_query($query_string);
-    return mysqli_affected_rows($conn);
+    // Bỏ cặp dấu nháy đơn ở 2 đầu do PDO::quote tự sinh ra
+    return substr($conn->quote($str), 1, -1);
 }
 
-// Thoát chuỗi an toàn
-function escape_string($str)
-{
-    global $conn;
-    return mysqli_real_escape_string($conn, $str);
-}
-
-// Hiển thị lỗi SQL chi tiết
-function db_sql_error($message, $query_string = "")
-{
-    global $conn;
-    $sqlerror = "<table width='100%' border='1' cellpadding='0' cellspacing='0'>";
-    $sqlerror .= "<tr><th colspan='2'>{$message}</th></tr>";
-    $sqlerror .= ($query_string != "") ? "<tr><td nowrap> Query SQL</td><td nowrap>: " . $query_string . "</td></tr>\n" : "";
-    $sqlerror .= "<tr><td nowrap> Error Number</td><td nowrap>: " . mysqli_errno($conn) . " " . mysqli_error($conn) . "</td></tr>\n";
-    $sqlerror .= "<tr><td nowrap> Date</td><td nowrap>: " . date("D, F j, Y H:i:s") . "</td></tr>\n";
-    $sqlerror .= "<tr><td nowrap> IP</td><td>: " . getenv("REMOTE_ADDR") . "</td></tr>\n";
-    $sqlerror .= "<tr><td nowrap> Browser</td><td nowrap>: " . getenv("HTTP_USER_AGENT") . "</td></tr>\n";
-    $sqlerror .= "<tr><td nowrap> Script</td><td nowrap>: " . getenv("REQUEST_URI") . "</td></tr>\n";
-    $sqlerror .= "<tr><td nowrap> Referer</td><td nowrap>: " . getenv("HTTP_REFERER") . "</td></tr>\n";
-    $sqlerror .= "<tr><td nowrap> PHP Version </td><td>: " . PHP_VERSION . "</td></tr>\n";
-    $sqlerror .= "<tr><td nowrap> OS</td><td>: " . PHP_OS . "</td></tr>\n";
-    $sqlerror .= "<tr><td nowrap> Server</td><td>: " . getenv("SERVER_SOFTWARE") . "</td></tr>\n";
-    $sqlerror .= "<tr><td nowrap> Server Name</td><td>: " . getenv("SERVER_NAME") . "</td></tr>\n";
-    $sqlerror .= "</table>";
-    $msgbox_messages = "<meta http-equiv=\"refresh\" content=\"9999\">\n<table class='smallgrey' cellspacing=1 cellpadding=0>" . $sqlerror . "</table>";
-    echo $msgbox_messages;
+// 10. Hiển thị lỗi SQL (Debug giao diện)
+function db_sql_error($message, $query_string = "", $pdo_error = "") {
+    $sqlerror = "<div style='font-family: Arial, sans-serif; background:#fee; border:1px solid #f00; padding:15px; margin:20px; border-radius:5px;'>";
+    $sqlerror .= "<h3 style='color:red; margin-top:0;'>{$message}</h3>";
+    $sqlerror .= "<ul style='line-height:1.6;'>";
+    if (!empty($query_string)) {
+        $sqlerror .= "<li><strong>Query SQL:</strong> <code style='background:#fff; padding:2px 5px;'>{$query_string}</code></li>";
+    }
+    if (!empty($pdo_error)) {
+        $sqlerror .= "<li><strong>Chi tiết lỗi:</strong> {$pdo_error}</li>";
+    }
+    $sqlerror .= "<li><strong>File chạy:</strong> {$_SERVER['REQUEST_URI']}</li>";
+    $sqlerror .= "</ul></div>";
+    
+    echo $sqlerror;
     exit;
 }
